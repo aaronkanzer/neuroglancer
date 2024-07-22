@@ -22,6 +22,7 @@ mime_type_map = {
     ".js": "application/javascript",
     ".html": "text/html",
     ".map": "application/json",
+    ".wasm": "application/wasm",
 }
 
 
@@ -41,7 +42,7 @@ class StaticContentSource:
 
 class ImportlibResourcesContentSource(StaticContentSource):
     def get_content(self, name):
-        if not re.match(r"^[a-z][a-zA-Z0-9_\-\.]*\.(?:js|js\.map|css|html)$", name):
+        if not re.match(r"^[a-z0-9][a-zA-Z0-9_\-\.]*\.(?:js|map|css|wasm|html)$", name):
             raise ValueError("Invalid static resource name: %r" % name)
         path = importlib.resources.files(__name__).joinpath("client", name)
         if path.is_file():
@@ -60,9 +61,7 @@ class HttpSource(StaticContentSource):
 
     def get(self, name, query):
         import requests
-
         print("http", repr(name), repr(query))
-
         full_url = posixpath.join(self.url, name)
         r = requests.get(full_url + query)
         if r.status_code >= 200 and r.status_code < 300:
